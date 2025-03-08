@@ -51,8 +51,8 @@ Sub CreateDiabetesChart()
             seriesCount = seriesCount + 1
             With .SeriesCollection.NewSeries
                 .Name = "Glycémie avant souper"
-                .XValues = ws.Range("A5:A8")
-                .Values = ws.Range("F5:F8")
+                .XValues = ws.Range("A5:A100")
+                .Values = ws.Range("F5:F100")
             End With
         End If
 
