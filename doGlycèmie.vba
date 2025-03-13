@@ -1,4 +1,4 @@
-Sub doGlyc èmie()
+Sub doGlycèmie()
     Dim b As Integer
     Dim count As Integer
     Dim count2 As Integer
