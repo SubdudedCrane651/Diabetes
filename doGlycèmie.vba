@@ -1,4 +1,4 @@
-Sub doGlycèmie()
+Sub doGlyc èmie()
     Dim b As Integer
     Dim count As Integer
     Dim count2 As Integer
@@ -86,66 +86,91 @@ Sub doGlycèmie()
 
     Call GlucoseSort
 
-    count = 0
-    doit = True
-
-    For k = 5 To 1000
-         On Error GoTo 5
-        datevar = ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(k, 1)
-        datevar2 = ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(k - 1, 1)
-        If datevar = datevar2 And datevar <> Empty Then
-            count = count + 1
-            doit = True
-            GoTo 5
-        Else
-            doit = False
-        End If
-        If count > 0 And Not doit Then
-            k = k - 1
-            For m = 1 To count
-                If ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(k - m, 2) <> Empty Then
-                    ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(k, 2) = ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(k - m, 2)
-                    ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(k - m, 1) = "DELETE"
-                End If
-                If ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(k - m, 4) <> Empty Then
-                    ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(k, 4) = ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(k - m, 4)
-                    ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(k - m, 1) = "DELETE"
-                End If
-                If ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(k - m, 7) <> Empty Then
-                    ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(k, 7) = ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(k - m, 7)
-                    ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(k - m, 1) = "DELETE"
-                End If
-                If ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(k - m, 9) <> Empty Then
-                    ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(k, 9) = ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(k - m, 9)
-                    ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(k - m, 1) = "DELETE"
-                End If
-                count = 0: doit = True
-            Next m
-        End If
-5:          Next k
-
-    For l = 5 To 1000
-         On Error GoTo 10
-        myrange = Range("B" & l & ":I" & l)
-        ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(l, 11) = Application.WorksheetFunction.Average(myrange)
-        If ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(l, 1) = Empty Then
-            ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(l, 11).Delete
-10:              Exit For
-        End If
-    Next
-
-    For h = 5 To 1000
-        If ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(h, 1) = "DELETE" Then
-            Rows(h).EntireRow.Delete
-            h = h - 1
-        End If
-    Next
-    
+    Call CalculateRoundedAverageWithCellsFixed
+           
     ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(2, 2) = "=ROUND(AVERAGE($B$5:$B$1000),1)"
     ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(2, 4) = "=ROUND(AVERAGE($DB$5:$D$1000),1)"
     ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(2, 6) = "=ROUND(AVERAGE($F$5:$F$1000),1)"
     ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(2, 9) = "=ROUND(AVERAGE($I$5:$I$1000),1)"
     
+    Call DeleteRowsWithZeroAverage
+    
     Call GlucoseColorIndex
 
+End Sub
+
+Sub CalculateRoundedAverageWithCellsFixed()
+    Dim cellRange As Range
+    Dim averageValue As Double
+    Dim roundedAverageValue As Double
+    Dim daysavg As Integer
+    Dim sheet1 As Worksheet
+    Dim sheet2 As Worksheet
+
+    Set sheet1 = ActiveWorkbook.Sheets("Diabetes_Control")
+    Set sheet2 = ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault")
+
+    For daysavg = 0 To sheet1.Cells(2, 14).Value - 1
+
+        ' Define the range of cells you want to average using Cells
+        Set cellRange = sheet2.Range(sheet2.Cells(5 + daysavg, 2), sheet2.Cells(5 + daysavg, 9))
+        
+        ' Calculate the average of the cell range
+        averageValue = 0
+        On Error Resume Next
+        averageValue = WorksheetFunction.Average(cellRange)
+        If IsError(averageValue) Or IsEmpty(averageValue) Then averageValue = 0
+        On Error GoTo 0
+
+        ' Round the average value to one decimal place
+        roundedAverageValue = WorksheetFunction.Round(averageValue, 1)
+        
+        ' Assign the rounded average value to the target cell
+        sheet2.Cells(5 + daysavg, 11).Value = roundedAverageValue
+    Next daysavg
+End Sub
+
+Sub DeleteRowsWithZeroAverage()
+    Dim sheet2 As Worksheet
+    Dim lastRow As Long
+    Dim i As Long
+
+    Set sheet2 = ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault")
+    lastRow = sheet2.Cells(sheet2.Rows.count, 11).End(xlUp).Row
+
+    ' Loop through each row from bottom to top
+    For i = lastRow To 5 Step - 1
+        If sheet2.Cells(i, 11).Value = 0 Then
+            sheet2.Rows(i).Delete
+        End If
+    Next i
+End Sub
+
+Sub GlucoseDelete()
+    Rows("5:1000").Select
+    Selection.ClearContents
+    Start = ActiveWorkbook.Sheets("Diabetes_Control").Cells(5, 1)
+    For Days = 0 To ActiveWorkbook.Sheets("Diabetes_Control").Cells(2, 14) - 1
+        ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(5 + Days, 1) = Start - Days
+    Next
+End Sub
+
+Sub GlucoseSort()
+    Range("A5:J100").Select
+    ActiveWorkbook.Worksheets("Glycèmie_De_Richard_Perreault").Sort.SortFields. _
+        Clear
+    ActiveWorkbook.Worksheets("Glycèmie_De_Richard_Perreault").Sort.SortFields. _
+        Add2 Key : = Range("A5:A100"), SortOn : = xlSortOnValues, Order : = xlDescending, _
+        DataOption : = xlSortNormal
+    With ActiveWorkbook.Worksheets("Glycèmie_De_Richard_Perreault").Sort
+        .SetRange Range("A5:L1000")
+        .Header = xlGuess
+        .MatchCase = False
+        .Orientation = xlTopToBottom
+        .SortMethod = xlPinYin
+        .Apply
+    End With
+    Columns("A:A").Select
+    Selection.NumberFormat = "[$-fr-CA]d mmmm, yyyy;@"
+    Rows("1:1").Select
 End Sub
