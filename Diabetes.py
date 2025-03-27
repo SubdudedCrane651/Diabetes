@@ -5,6 +5,36 @@ import numpy as np
 from datetime import datetime
 import pyodbc
 import sys
+import pyodbc
+import win32com.client
+
+def run_access_subroutine(days):
+    # Path to your Access database file
+    database_path = r"C:\Users\rchrd\Documents\Richard\Richards_Health.mdb"
+    
+    try:
+        # Create a COM object to interact with Access
+        access_app = win32com.client.Dispatch("Access.Application")
+
+        # Open the Access database
+        access_app.OpenCurrentDatabase(database_path)
+
+        # Run the Access VBA subroutine and pass the parameter dynamically
+        access_app.Run("CreateDiabetesQrys", int(days))
+
+        # Close the database
+        access_app.CloseCurrentDatabase()
+
+        # Quit the Access application
+        access_app.Quit()
+
+        print(f"Subroutine 'CreateDiabetesQrys' executed successfully for {days} days.")
+    except Exception as e:
+        print(f"Error executing subroutine: {e}")
+
+# Example usage: Run the subroutine with 7 days as the parameter
+
+# Example usage: Pass the number of days dynamically
 
 import xlwings as xw
 try:
@@ -36,6 +66,8 @@ try:
    DateStart=sys.argv[1]
 except:
    DateStart=22
+   
+run_access_subroutine(int(DateStart))
 
 # SELECT Diabetes.Datevar, Diabetes.Timevar, Diabetes.Reading
 # FROM Diabetes
