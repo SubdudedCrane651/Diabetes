@@ -8,33 +8,28 @@ import sys
 import pyodbc
 import win32com.client
 
-def run_access_subroutine(days):
-    # Path to your Access database file
-    database_path = r"C:\Users\rchrd\Documents\Richard\Richards_Health.mdb"
-    
+# Connect to the Access application
+db_path = r"C:\Users\rchrd\Documents\Richard\Richards_Health.mdb"  # Replace with the path to your database
+access_app = win32com.client.Dispatch("Access.Application")
+access_app.OpenCurrentDatabase(db_path)
+
+# Specify the number of days for filtering
+days = 7  # Adjust as needed
+
+# Function to delete a query
+def delete_query(query_name):
     try:
-        # Create a COM object to interact with Access
-        access_app = win32com.client.Dispatch("Access.Application")
-
-        # Open the Access database
-        access_app.OpenCurrentDatabase(database_path)
-
-        # Run the Access VBA subroutine and pass the parameter dynamically
-        access_app.Run("CreateDiabetesQrys", int(days))
-
-        # Close the database
-        access_app.CloseCurrentDatabase()
-
-        # Quit the Access application
-        access_app.Quit()
-
-        print(f"Subroutine 'CreateDiabetesQrys' executed successfully for {days} days.")
+        access_app.CurrentDb().QueryDefs.Delete(query_name)
     except Exception as e:
-        print(f"Error executing subroutine: {e}")
+        print(f"Error deleting query '{query_name}': {e}")
 
-# Example usage: Run the subroutine with 7 days as the parameter
-
-# Example usage: Pass the number of days dynamically
+# Function to create a query
+def create_query(query_name, query_sql):
+    try:
+        delete_query(query_name)  # First delete the query if it exists
+        access_app.CurrentDb().CreateQueryDef(query_name, query_sql)
+    except Exception as e:
+        print(f"Error creating query '{query_name}': {e}")
 
 import xlwings as xw
 try:
@@ -63,11 +58,47 @@ cnxn = pyodbc.connect(connection_string, autocommit=True)
 crsr = cnxn.cursor()
 
 try:
-   DateStart=sys.argv[1]
+   days=sys.argv[1]
 except:
-   DateStart=22
+   days=22
    
-run_access_subroutine(int(DateStart))
+# Define SQL for each query
+mourning_sql = f"""
+SELECT Diabetes.Datevar, Diabetes.Timevar, Diabetes.Reading
+FROM Diabetes
+WHERE Diabetes.Datevar >= Date() - {days}
+      AND Diabetes.Timevar <= #11:59:00 AM#
+      AND YEAR(Diabetes.Datevar) = 2025
+ORDER BY Diabetes.Datevar DESC;
+"""
+
+afternoon_sql = f"""
+SELECT Diabetes.Datevar, Diabetes.Timevar, Diabetes.Reading
+FROM Diabetes
+WHERE Diabetes.Datevar >= Date() - {days}
+      AND Diabetes.Timevar >= #11:59:00 AM#
+      AND Diabetes.Timevar <= #5:00:00 PM#
+      AND YEAR(Diabetes.Datevar) = 2025
+ORDER BY Diabetes.Datevar DESC;
+"""
+
+evening_sql = f"""
+SELECT Diabetes.Datevar, Diabetes.Timevar, Diabetes.Reading
+FROM Diabetes
+WHERE Diabetes.Datevar >= Date() - {days}
+      AND Diabetes.Timevar > #5:00:00 PM#
+      AND YEAR(Diabetes.Datevar) = 2025
+ORDER BY Diabetes.Datevar DESC;
+"""   
+   
+# Execute the functions
+create_query("Mourning_Gluclose_Reading", mourning_sql)
+create_query("Afternoon_Glucose_Reading", afternoon_sql)
+create_query("Evening_Gluclose_Reading", evening_sql)
+
+# Close the Access application
+access_app.CloseCurrentDatabase()
+access_app.Quit()
 
 # SELECT Diabetes.Datevar, Diabetes.Timevar, Diabetes.Reading
 # FROM Diabetes
@@ -109,7 +140,7 @@ for row in rows:
 cnxn = pyodbc.connect(connection_string, autocommit=True)
 crsr = cnxn.cursor()
 
-sheet["n2"]=DateStart
+sheet["n2"]=days
 
 # SELECT Diabetes.Datevar, Diabetes.Timevar, Diabetes.Reading
 # FROM Diabetes
