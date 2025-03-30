@@ -35,6 +35,7 @@ def write_to_excel(sheet, start_column, rows, header, days):
         Average_Reading.append(float(row[2]))
         sheet[f"{chr(ord(start_column) + 2)}{x}"] = Average_Reading[count]
         count += 1
+        print(rows)
 
 # Main function to create the Excel file
 def CreateDiabetes_xlsm():
