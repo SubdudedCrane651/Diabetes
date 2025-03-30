@@ -1,10 +1,8 @@
 import openpyxl
 from openpyxl import Workbook
-from unicodedata import decimal
-import numpy as np
 from datetime import datetime
-import pyodbc
 import sys
+import pyodbc
 import tkinter as tk
 from tkinter import messagebox
 import win32com.client
