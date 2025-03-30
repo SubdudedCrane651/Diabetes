@@ -57,10 +57,13 @@ connection_string = (
 cnxn = pyodbc.connect(connection_string, autocommit=True)
 crsr = cnxn.cursor()
 
-try:
-   days=sys.argv[1]
-except:
-   days=22
+days=input("How many days: ")
+
+# try:
+#    days=sys.argv[1]
+# except:
+#    pass
+   
    
 # Define SQL for each query
 mourning_sql = f"""
