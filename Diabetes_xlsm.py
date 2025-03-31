@@ -5,7 +5,6 @@ import sys
 import pyodbc
 import xlwings as xw
 
-
 # Define the function to fetch data from Access and process it
 def fetch_data_from_access(query, connection_string):
     cnxn = pyodbc.connect(connection_string, autocommit=True)
@@ -38,7 +37,7 @@ def write_to_excel(sheet, start_column, rows, header, days):
         print(rows)
 
 # Main function to create the Excel file
-def CreateDiabetes_xlsm():
+def CreateDiabetes_xlsm(days):
     import xlwings as xw
     try:
             xl_app = xw.App(visible=False, add_book=False)
@@ -98,8 +97,9 @@ def CreateDiabetes_xlsm():
 # Command-line argument for days
 try:
     days = sys.argv[1]
+    CreateDiabetes_xlsm(days)
 except IndexError:
     days = 22
 
 # Execute the function
-CreateDiabetes_xlsm()
+#CreateDiabetes_xlsm()
