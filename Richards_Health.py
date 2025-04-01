@@ -1,8 +1,6 @@
-from unicodedata import decimal
-import numpy as np
 from datetime import datetime
+import numpy as np
 import pyodbc
-import pandas as pd
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D  # Required for 3D plotting
 
@@ -16,10 +14,6 @@ connection_string = (
 cnxn = pyodbc.connect(connection_string, autocommit=True)
 crsr = cnxn.cursor()
 
-# Optional: List available tables (for debugging)
-for i in crsr.tables(tableType='TABLE'):
-    print(i.table_name)
-
 # --------------------------
 # Execute the query (stored procedure)
 # --------------------------
@@ -30,46 +24,39 @@ crsr.execute(SQL)
 rows = crsr.fetchall()
 
 # --------------------------
-# Prepare data lists
+# Prepare and sort data lists
 # --------------------------
-Datevar = []           # will hold date strings (expected in "dd-mm-yyyy" format)
-Average_Reading = []   # numeric values
+Datevar = []
+Average_Reading = []
 
 for row in rows:
-    Datevar.append(str(row[0]))
-    Average_Reading.append(float(row[1]))
+    Datevar.append(str(row[0]))  # Store date as string first
+    Average_Reading.append(float(row[1]))  # Store numeric reading
 
-print(rows)
-
-# --------------------------
-# Convert date strings to datetime objects
-# --------------------------
-# Adjust the date format if necessary.
-dates = []
+# Convert date strings to datetime objects for sorting
+parsed_dates = []
 for d in Datevar:
     try:
-        dates.append(datetime.strptime(d, "%d-%m-%Y"))
+        parsed_dates.append(datetime.strptime(d, "%d-%m-%Y"))
     except Exception as e:
         print(f"Error parsing date '{d}': {e}")
-        # If parsing fails, append None and you might want to filter these out later. 
-        dates.append(None)
+        parsed_dates.append(None)
+
+# Zip and sort data by date
+sorted_data = sorted(zip(parsed_dates, Average_Reading), key=lambda x: x[0] if x[0] else datetime.max)
+
+# Unzip sorted data back into lists
+dates_sorted, Average_Reading_sorted = zip(*sorted_data)
 
 # --------------------------
 # Define positions and properties for bars (3D)
 # --------------------------
-ind = np.arange(len(Average_Reading))  # x positions, one per reading
-width = 0.35   # width of each bar (in x-direction)
-depth = 0.5    # depth of each bar (in y-direction)
+ind = np.arange(len(Average_Reading_sorted))  # x positions, one per reading
+width = 0.35   # width of each bar
+depth = 0.5    # depth of each bar
 
-# Determine conditional colors for each bar:
-colors = []
-for value in Average_Reading:
-    if value > 7:
-        colors.append('red')
-    elif value < 3:
-        colors.append('blue')
-    else:
-        colors.append('green')
+# Determine conditional colors for each bar
+colors = ['red' if val > 7 else 'blue' if val < 3 else 'green' for val in Average_Reading_sorted]
 
 # --------------------------
 # Create a 3D bar chart
@@ -77,49 +64,37 @@ for value in Average_Reading:
 fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 
-# Draw bars using bar3d:
-# - x: positions along date axis (ind)
-# - y: dummy positions (0 for each since we have only one row of data)
-# - z: the base (0)
-# - dx: width, dy: depth, dz: height (Average_Reading)
 ax.bar3d(ind, 
          np.zeros_like(ind), 
          np.zeros_like(ind), 
          width, 
          depth, 
-         Average_Reading, 
+         Average_Reading_sorted, 
          color=colors, 
          shade=True)
 
 # --------------------------
-# Setting custom x-axis ticks: Only one label per month
+# Setting custom x-axis ticks: One label per month in order
 # --------------------------
 tick_positions = []
 tick_labels = []
 last_month = None
 
-# Loop over positions and parsed dates; because data are assumed sorted,
-# record a tick when the month changes.
-for i, d in enumerate(dates):
+for i, d in enumerate(dates_sorted):
     if d is None:
         continue
     current_month = d.strftime('%Y-%m')
     if current_month != last_month:
-        # Place tick at the center of the bar
         tick_positions.append(i + width / 2)
-        # Format label as "Mon YYYY", e.g., "Jan 2022"
         tick_labels.append(d.strftime('%b %Y'))
         last_month = current_month
 
-# Use our custom tick positions and labels on the x-axis:
 ax.set_xticks(tick_positions)
 ax.set_xticklabels(tick_labels, rotation=45, fontsize=10)
 
 # --------------------------
 # Labeling and formatting axes
 # --------------------------
-#ax.set_xlabel('Date')
-ax.set_ylabel('')  # not used; can be hidden
 ax.set_zlabel('Average Reading')
 plt.title('Average Reading per Day (3D)')
 
@@ -132,5 +107,4 @@ plt.tight_layout()
 # Save the chart as a PNG file before showing it
 # --------------------------
 plt.savefig("AverageReading3D.png", dpi=300)
-
 plt.show()
