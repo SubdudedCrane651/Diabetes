@@ -33,6 +33,8 @@ for row in rows:
     Datevar.append(str(row[0]))  # Store date as string first
     Average_Reading.append(float(row[1]))  # Store numeric reading
 
+print(rows)
+
 # Convert date strings to datetime objects for sorting
 parsed_dates = []
 for d in Datevar:
