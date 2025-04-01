@@ -108,5 +108,5 @@ plt.tight_layout()
 # --------------------------
 # Save the chart as a PNG file before showing it
 # --------------------------
-plt.savefig("AverageReading3D.png", dpi=300)
+plt.savefig(r"C:\Users\rchrd\Documents\Richard\Diabetes\AverageReading3D.png", dpi=300)
 plt.show()
