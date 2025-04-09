@@ -8,8 +8,26 @@ from tkinter import messagebox
 import win32com.client
 import Diabetes_xlsm as db
 
+# Function to retrieve the default days from the Access database
+def get_default_days():
+    try:
+        db_path = r"C:\Users\rchrd\Documents\Richard\Richards_Health.mdb"  # Update with your database path
+        conn = pyodbc.connect(f"DRIVER={{Microsoft Access Driver (*.mdb, *.accdb)}};DBQ={db_path};")
+        cursor = conn.cursor()
 
-# Define the function to update queries
+        cursor.execute("SELECT TOP 1 Days FROM Days")
+        row = cursor.fetchone()
+        default_days = row[0] if row else 7  # Default to 7 if the table is empty
+        
+        cursor.close()
+        conn.close()
+        return default_days
+
+    except Exception as e:
+        print(f"Error retrieving default days: {e}")
+        return 7  # Default to 7 on error
+
+# Function to update queries
 def update_queries():
     try:
         # Get the number of days from the entry widget
@@ -20,20 +38,15 @@ def update_queries():
         access_app = win32com.client.Dispatch("Access.Application")
         access_app.OpenCurrentDatabase(db_path)
 
-        # Function to delete a query
-        def delete_query(query_name):
-            try:
-                access_app.CurrentDb().QueryDefs.Delete(query_name)
-            except Exception as e:
-                print(f"Error deleting query '{query_name}': {e}")
+        # Update the first record instead of adding a new one
+        conn = pyodbc.connect(f"DRIVER={{Microsoft Access Driver (*.mdb, *.accdb)}};DBQ={db_path};")
+        cursor = conn.cursor()
 
-        # Function to create a query
-        def create_query(query_name, query_sql):
-            try:
-                delete_query(query_name)  # Delete the existing query
-                access_app.CurrentDb().CreateQueryDef(query_name, query_sql)
-            except Exception as e:
-                print(f"Error creating query '{query_name}': {e}")
+        cursor.execute("UPDATE Days SET Days = ? WHERE ID = (SELECT MIN(ID) FROM Days)", days)
+        conn.commit()
+
+        cursor.close()
+        conn.close()
 
         # Define SQL for each query
         mourning_sql = f"""
@@ -65,11 +78,24 @@ def update_queries():
         """
 
         # Create or update the queries
+        def delete_query(query_name):
+            try:
+                access_app.CurrentDb().QueryDefs.Delete(query_name)
+            except Exception:
+                pass
+
+        def create_query(query_name, query_sql):
+            try:
+                delete_query(query_name)
+                access_app.CurrentDb().CreateQueryDef(query_name, query_sql)
+            except Exception as e:
+                print(f"Error creating query '{query_name}': {e}")
+
         create_query("Mourning_Gluclose_Reading", mourning_sql)
         create_query("Afternoon_Glucose_Reading", afternoon_sql)
         create_query("Evening_Gluclose_Reading", evening_sql)
 
-        # Close the Access database
+        # Close Access database
         access_app.CloseCurrentDatabase()
         access_app.Quit()
 
@@ -77,33 +103,38 @@ def update_queries():
         messagebox.showinfo("Success", "Queries updated successfully!")
         db.CreateDiabetes_xlsm(days)
         quit_application()
+
     except ValueError:
         messagebox.showerror("Error", "Please enter a valid number of days.")
     except Exception as e:
         messagebox.showerror("Error", f"An error occurred: {e}")
 
 def quit_application():
-    window.destroy()  # Destroy the tkinter window
-    sys.exit()        # Exit the script
- 
-# Create the tkinter GUI
+    window.destroy()
+    sys.exit()
+
+# Create tkinter GUI
 window = tk.Tk()
 window.title("Update Queries")
 
-# Bind the quit function to the window's close button (X)
+# Bind quit function to window close button (X)
 window.protocol("WM_DELETE_WINDOW", quit_application)
 
-# Create a label for the entry field
+# Create label for entry field
 label = tk.Label(window, text="Enter number of days:")
 label.pack(pady=5)
 
-# Create the entry field
+# Get default value from the database
+default_days = get_default_days()
+
+# Create entry field with default value
 entry = tk.Entry(window)
+entry.insert(0, str(default_days))  # Set default value
 entry.pack(pady=5)
 
-# Create the button to trigger the update function
+# Create button to trigger update function
 button = tk.Button(window, text="Update Queries", command=update_queries)
 button.pack(pady=10)
 
-# Run the tkinter GUI event loop
+# Run tkinter GUI event loop
 window.mainloop()
