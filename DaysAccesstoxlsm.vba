@@ -7,7 +7,7 @@ Private Sub Command41_Click()
     Dim daysstr As String
     Dim defaultDays As Integer
     
-    'On Error GoTo Cancel
+    On Error GoTo Cancel
     
     Set db = CurrentDb
     Set rst = db.OpenRecordset("Days", dbOpenDynaset)
