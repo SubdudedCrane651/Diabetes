@@ -1,14 +1,14 @@
 Sub CreateDiabetesChart()
     Dim ws As Worksheet
-    Set ws = ThisWorkbook.Sheets("Glycèmie_De_Richard_Perreault") ' Ensure this matches your sheet name
-    
-    ' Delete any existing charts on the worksheet
+    Set ws = ThisWorkbook.Sheets("Glycèmie_De_Richard_Perreault")
+
+    ' Delete existing charts
     Dim co As ChartObject
     For Each co In ws.ChartObjects
         co.Delete
     Next co
-    
-    ' Create a new chart object at cell M5 with a fixed size
+
+    ' Create new chart
     Dim newChartObj As ChartObject
     Set newChartObj = ws.ChartObjects.Add( _
         Left:=ws.Range("M5").Left, _
@@ -17,72 +17,87 @@ Sub CreateDiabetesChart()
         Height:=300)
 
     With newChartObj.Chart
-        ' Set the chart type to a line chart so that connecting lines are drawn
         .ChartType = xlLine
-
-        ' Force blanks to be interpolated so that if there are gaps the available points are joined
         .DisplayBlanksAs = xlInterpolated
 
+        Dim lastRow As Integer
+        lastRow = ws.Cells(ws.Rows.count, 1).End(xlUp).Row
+
+        ' Get unique dates while limiting to 20 days
+        Dim uniqueDates As Object
+        Set uniqueDates = CreateObject("Scripting.Dictionary")
+        
+        Dim i As Integer
+        For i = 5 To lastRow
+            If Not uniqueDates.Exists(ws.Cells(i, 1).Value) Then
+                uniqueDates.Add ws.Cells(i, 1).Value, ws.Cells(i, 1).Value
+            End If
+            If uniqueDates.count >= 20 Then Exit For
+        Next i
+
+        ' Define X-axis range (filtered dates)
+        Dim xValuesRange As String
+        xValuesRange = "A5:A" & lastRow
+        
+        ' Ensure each series is plotted
         Dim seriesCount As Integer
         seriesCount = 0
 
-        ' SERIES 1: Before Breakfast – dates from A5:A100 and readings from B5:B100
-        If Application.WorksheetFunction.count(ws.Range("B5:B100")) > 0 Then
+        ' SERIES 1: Before Breakfast
+        If Application.WorksheetFunction.count(ws.Range("B5:B" & lastRow)) > 0 Then
             seriesCount = seriesCount + 1
             With .SeriesCollection.NewSeries
                 .Name = "Glycémie à jeun"
-                .XValues = ws.Range("A5:A100")
-                .Values = ws.Range("B5:B100")
+                .XValues = ws.Range(xValuesRange)
+                .Values = ws.Range("B5:B" & lastRow)
             End With
         End If
 
-        ' SERIES 2: Before Dinner – dates from A5:A100 and readings from D5:D100 (if any data)
-        If Application.WorksheetFunction.count(ws.Range("D5:D100")) > 0 Then
+        ' SERIES 2: Before Dinner
+        If Application.WorksheetFunction.count(ws.Range("D5:D" & lastRow)) > 0 Then
             seriesCount = seriesCount + 1
             With .SeriesCollection.NewSeries
                 .Name = "Glycémie avant diner"
-                .XValues = ws.Range("A5:A100")
-                .Values = ws.Range("D5:D100")
+                .XValues = ws.Range(xValuesRange)
+                .Values = ws.Range("D5:D" & lastRow)
             End With
         End If
 
-        ' SERIES 3: Before Supper – dates from A5:A8 and readings from F5:F8
-        If Application.WorksheetFunction.count(ws.Range("F5:F8")) > 0 Then
+        ' SERIES 3: Before Supper
+        If Application.WorksheetFunction.count(ws.Range("F5:F" & lastRow)) > 0 Then
             seriesCount = seriesCount + 1
             With .SeriesCollection.NewSeries
                 .Name = "Glycémie avant souper"
-                .XValues = ws.Range("A5:A100")
-                .Values = ws.Range("F5:F100")
+                .XValues = ws.Range(xValuesRange)
+                .Values = ws.Range("F5:F" & lastRow)
             End With
         End If
 
-        ' SERIES 4: Before Sleeping – dates from A5:A100 and readings from I5:I100 (if any data)
-        If Application.WorksheetFunction.count(ws.Range("I5:I100")) > 0 Then
+        ' SERIES 4: Before Sleeping
+        If Application.WorksheetFunction.count(ws.Range("I5:I" & lastRow)) > 0 Then
             seriesCount = seriesCount + 1
             With .SeriesCollection.NewSeries
                 .Name = "Glycémie avant Dodo"
-                .XValues = ws.Range("A5:A100")
-                .Values = ws.Range("I5:I100")
+                .XValues = ws.Range(xValuesRange)
+                .Values = ws.Range("I5:I" & lastRow)
             End With
         End If
 
-        ' Format the X-axis (assumed to be dates)
+        ' Format axes
         With .Axes(xlCategory)
             .TickLabels.Orientation = 45
             .HasTitle = True
             .AxisTitle.Text = "Date"
         End With
 
-        ' Format the Y-axis (glucose readings)
         With .Axes(xlValue)
             .HasTitle = True
             .AxisTitle.Text = "Glucose"
         End With
 
-        ' Show the legend
         .HasLegend = True
 
-        ' Set distinct line colors for the series that were added
+        ' Assign colors to each series
         If seriesCount >= 1 Then .SeriesCollection(1).Format.Line.ForeColor.RGB = RGB(255, 0, 0) ' Red
         If seriesCount >= 2 Then .SeriesCollection(2).Format.Line.ForeColor.RGB = RGB(0, 255, 0) ' Green
         If seriesCount >= 3 Then .SeriesCollection(3).Format.Line.ForeColor.RGB = RGB(0, 0, 255) ' Blue
