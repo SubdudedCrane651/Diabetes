@@ -77,23 +77,23 @@ Public Sub CreateDiabetesQrys(days)
     DoCmd.DeleteObject acQuery, "Mourning_Gluclose_Reading"
     On Error GoTo 0
 
-    newSQL = "SELECT Diabetes.Datevar, Diabetes.Timevar, Diabetes.Reading FROM Diabetes WHERE (((Diabetes.Datevar) >= Date() - " + Str(days) + ") And ((Diabetes.Timevar) <= #11:59:00 AM#) And ((Year([Diabetes].[Datevar])) = 2025)) ORDER BY Diabetes.Datevar DESC;"
-    
+    newSQL = "SELECT Format(Diabetes.Datevar,'MM/DD/YYYY') as Datevar, Diabetes.Timevar, Diabetes.Reading FROM Diabetes WHERE (((Diabetes.Datevar) >= Date() - " + Str(days) + ") And ((Diabetes.Timevar) <= #11:00:00 AM#) And ((Year([Diabetes].[Datevar])) = 2025)) ORDER BY Diabetes.Datevar DESC;"
+ 
     Set qdf = db.CreateQueryDef("Mourning_Gluclose_Reading", newSQL)
     
     On Error Resume Next
     DoCmd.DeleteObject acQuery, "Afternoon_Glucose_Reading"
     On Error GoTo 0
 
-    newSQL = "SELECT Diabetes.Datevar, Diabetes.Timevar, Diabetes.Reading FROM Diabetes WHERE (((Diabetes.Datevar) >= Date() - " + Str(days) + ") And ((Diabetes.Timevar) >=#11:59:00 AM# And (Diabetes.Timevar)<=#5:00:00 PM#) And ((Year([Diabetes].[Datevar])) = 2025)) ORDER BY Diabetes.Datevar DESC;"
-    
+    newSQL = "SELECT Format(Diabetes.Datevar,'MM/DD/YYYY') as Datevar, Diabetes.Timevar, Diabetes.Reading FROM Diabetes WHERE (((Diabetes.Datevar) >= Date() - " + Str(days) + ") And ((Diabetes.Timevar) >=#11:01:00 AM# And (Diabetes.Timevar)<=#9:00:00 PM#) And ((Year([Diabetes].[Datevar])) = 2025)) ORDER BY Diabetes.Datevar DESC;"
+ 
     Set qdf = db.CreateQueryDef("Afternoon_Glucose_Reading", newSQL)
     
     On Error Resume Next
     DoCmd.DeleteObject acQuery, "Evening_Gluclose_Reading"
     On Error GoTo 0
 
-    newSQL = "SELECT Diabetes.Datevar, Diabetes.Timevar, Diabetes.Reading FROM Diabetes WHERE (((Diabetes.Datevar) >= Date() - " + Str(days) + ") And ((Diabetes.Timevar) > #5:00:00 PM#) And ((Year([Diabetes].[Datevar])) = 2025)) ORDER BY Diabetes.Datevar DESC;"
-    
+    newSQL = "SELECT Format(Diabetes.Datevar,'MM/DD/YYYY') as Datevar, Diabetes.Timevar, Diabetes.Reading FROM Diabetes WHERE (((Diabetes.Datevar) >= Date() - " + Str(days) + ") And ((Diabetes.Timevar) > #9:01:00 PM#) And ((Year([Diabetes].[Datevar])) = 2025)) ORDER BY Diabetes.Datevar DESC;"
+ 
     Set qdf = db.CreateQueryDef("Evening_Gluclose_Reading", newSQL)
 End Sub

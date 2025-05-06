@@ -1,102 +1,256 @@
-Sub doGlycèmie()
-    Dim b As Integer
-    Dim count As Integer
-    Dim count2 As Integer
-    Dim count3 As Integer
-    Dim Time As Date
-    Dim Beforelunch As Boolean
-    Dim samedate As Boolean
-    Dim dobeforelunch As Boolean
+Sub doGlycemie()
+    Dim wsInput As Worksheet
+    Dim wsOutput As Worksheet
+    Dim countRow As Integer
+    Dim currDate As Date
+    Dim glucoseSumMorning As Double, glucoseCountMorning As Integer
+    Dim glucoseSumLunch As Double, glucoseCountLunch As Integer
+    Dim glucoseSumDinner As Double, glucoseCountDinner As Integer
+    Dim glucoseSumEvening As Double, glucoseCountEvening As Integer
+    Dim TimeVar As Date
+    Dim RowOutput As Integer
 
-    Sheets("Glycèmie_De_Richard_Perreault").Select
+    ' Set references to sheets
+    Set wsInput = ActiveWorkbook.Sheets("Diabetes_Control")
+    Set wsOutput = ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault")
+
+    ' Clear previous data
     Call GlucoseDelete
-    Beforelunch = False
-    samedate = False
-    'check fasting And before breakfast
-    count3 = 0
-    count4 = 0
-    breakfast = ActiveWorkbook.Sheets("Diabetes_Control").Cells(5 + count4, 1)
-    While breakfast <> Empty
-        breakfast = ActiveWorkbook.Sheets("Diabetes_Control").Cells(5 + count4, 1)
-        breakfast2 = ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(5 + count3, 1)
-        If breakfast = breakfast2 Then
-            ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(5 + count3, 1) = breakfast2
+    
+    'Mourning Reading
+
+    countRow = 5
+    RowOutput = 5 ' Start inserting at row 5
+    currDate = wsInput.Cells(countRow, 1).Value
+
+    ' Initialize counters
+    glucoseSumMorning = 0 : glucoseCountMorning = 0
+    glucoseSumLunch = 0 : glucoseCountLunch = 0
+    glucoseSumDinner = 0 : glucoseCountDinner = 0
+    glucoseSumEvening = 0 : glucoseCountEvening = 0
+
+    While wsInput.Cells(countRow, 1).Value <> ""
+        ' Get Date and Time values
+        If wsInput.Cells(countRow, 1).Value <> currDate Then
+            ' Store averaged results in output sheet
+            'wsOutput.Cells(RowOutput, 1).Value = Format(currDate, "MM/DD/YYYY")
+
+            If glucoseCountMorning > 0 Then
+                wsOutput.Cells(RowOutput, 2).Value = Round(glucoseSumMorning / glucoseCountMorning, 1) ' 2 AM
+                'wsOutput.Cells(RowOutput, 3).Value = "02:00 AM"
+            End If
             
-            breakfastglycèmie = ActiveWorkbook.Sheets("Diabetes_Control").Cells(5 + count4, 3)
-            Time = ActiveWorkbook.Sheets("Diabetes_Control").Cells(5 + count4, 2)
-            If Time > "1:00:00" And Time <= "9:00:00" Then
-                ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(5 + count3, 2) = breakfastglycèmie
-            Else
-                ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(5 + count3, 4) = breakfastglycèmie
+            If glucoseCountLunch > 0 Then
+                wsOutput.Cells(RowOutput, 4).Value = Round(glucoseSumLunch / glucoseCountLunch, 1) ' Before lunch (9 AM - 1 PM)
+                'wsOutput.Cells(RowOutput, 5).Value = "12:00 PM"
             End If
-            count4 = count4 + 1
-        Else
-            If ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(5 + count3, 1) = Empty Then
-                ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(5 + count3, 1) = breakfast
+            
+            If glucoseCountDinner > 0 Then
+                wsOutput.Cells(RowOutput, 6).Value = Round(glucoseSumDinner / glucoseCountDinner, 1) ' Before dinner (1 PM - 7 PM)
+                'wsOutput.Cells(RowOutput, 7).Value = "06:00 PM"
             End If
-            count3 = count3 + 1
+            
+            If glucoseCountEvening > 0 Then
+                wsOutput.Cells(RowOutput, 9).Value = Round(glucoseSumEvening / glucoseCountEvening, 1) ' Evening (9 PM - 11:59 PM)
+                'wsOutput.Cells(RowOutput, 9).Value = "10:00 PM"
+            End If
+            
+            ' Move to next row for output
+            RowOutput = RowOutput + 1
+            currDate = wsInput.Cells(countRow, 1).Value
+
+            ' Reset counters for next date
+            glucoseSumMorning = 0 : glucoseCountMorning = 0
+            glucoseSumLunch = 0 : glucoseCountLunch = 0
+            glucoseSumDinner = 0 : glucoseCountDinner = 0
+            glucoseSumEvening = 0 : glucoseCountEvening = 0
         End If
+
+        TimeVar = wsInput.Cells(countRow, 2).Value
+
+        ' Categorize glucose readings by time range
+        If TimeVar >= TimeValue("12:00 AM") And TimeVar < TimeValue("9:00 AM") Then
+            glucoseSumMorning = glucoseSumMorning + wsInput.Cells(countRow, 3).Value
+            glucoseCountMorning = glucoseCountMorning + 1
+        ElseIf TimeVar >= TimeValue("9:00 AM") And TimeVar < TimeValue("1:00 PM") Then
+            glucoseSumLunch = glucoseSumLunch + wsInput.Cells(countRow, 7).Value
+            glucoseCountLunch = glucoseCountLunch + 1
+        ElseIf TimeVar >= TimeValue("1:00 PM") And TimeVar < TimeValue("7:00 PM") Then
+            glucoseSumDinner = glucoseSumDinner + wsInput.Cells(countRow, 7).Value
+            glucoseCountDinner = glucoseCountDinner + 1
+        ElseIf TimeVar >= TimeValue("9:00 PM") And TimeVar <= TimeValue("11:59 PM") Then
+            glucoseSumEvening = glucoseSumEvening + wsInput.Cells(countRow, 11).Value
+            glucoseCountEvening = glucoseCountEvening + 1
+        End If
+
+        countRow = countRow + 1
+    Wend
+    
+    ' Store final day's readings
+    'wsOutput.Cells(RowOutput, 1).Value = Format(currDate, "MM/DD/YYYY")
+    If glucoseCountMorning > 0 Then wsOutput.Cells(RowOutput, 2).Value = Round(glucoseSumMorning / glucoseCountMorning, 1)
+    If glucoseCountLunch > 0 Then wsOutput.Cells(RowOutput, 4).Value = Round(glucoseSumLunch / glucoseCountLunch, 1)
+    If glucoseCountDinner > 0 Then wsOutput.Cells(RowOutput, 6).Value = Round(glucoseSumDinner / glucoseCountDinner, 1)
+    If glucoseCountEvening > 0 Then wsOutput.Cells(RowOutput, 9).Value = Round(glucoseSumEvening / glucoseCountEvening, 1)
+    
+    'Dinner and Lunch Reading
+    DoIt = True
+    countRow = 5
+    RowOutput = 5 ' Start inserting at row 5
+    currDate = wsInput.Cells(countRow, 5).Value
+
+    ' Initialize counters
+    glucoseSumLunch = 0 : glucoseCountLunch = 0
+    glucoseSumAfternoon = 0 : glucoseCountAfternoon = 0
+
+    While wsInput.Cells(countRow, 5).Value <> ""
+        TimeVar = wsInput.Cells(countRow, 6).Value
+
+        ' If moving to a new date, insert results and reset counters
+        If wsInput.Cells(countRow, 1).Value <> currDate And currDate <> 0 Then
+            ' Store averaged results in **one row per date**
+            'wsOutput.Cells(RowOutput, 1).Value = Format(currDate, "MM/DD/YYYY") ' Date
+
+            If glucoseCountLunch > 0 Then
+                'wsOutput.Cells(RowOutput, 2).Value = "12:00 PM" ' Fixed time
+                wsOutput.Cells(RowOutput, 4).Value = Round(glucoseSumLunch / glucoseCountLunch, 1) ' Avg lunch reading
+            End If
+
+            If glucoseCountAfternoon > 0 Then
+                'wsOutput.Cells(RowOutput, 4).Value = "2:00 PM" ' Fixed time
+                wsOutput.Cells(RowOutput, 6).Value = Round(glucoseSumAfternoon / glucoseCountAfternoon, 1) ' Avg afternoon reading
+                RowOutput = RowOutput - 1
+            End If
+
+            RowOutput = RowOutput + 1 ' Move to next row
+
+            ' Reset values for the next date
+            glucoseSumLunch = 0 : glucoseCountLunch = 0
+            glucoseSumAfternoon = 0 : glucoseCountAfternoon = 0
+            currDate = wsInput.Cells(countRow, 5).Value
+        End If
+
+        ' Categorize glucose readings into lunch (12 PM) and afternoon (2 PM)
+        If TimeVar >= TimeValue("9:00 AM") And TimeVar < TimeValue("1:00 PM") Then
+            glucoseSumLunch = glucoseSumLunch + wsInput.Cells(countRow, 7).Value
+            glucoseCountLunch = glucoseCountLunch + 1
+        ElseIf TimeVar >= TimeValue("1:00 PM") And TimeVar < TimeValue("5:00 PM") Then
+            glucoseSumAfternoon = glucoseSumAfternoon + wsInput.Cells(countRow, 7).Value
+            glucoseCountAfternoon = glucoseCountAfternoon + 1
+        End If
+        
+        countRow = countRow + 1
+        
     Wend
 
-    'Check before dinner
-    count3 = 0
-    count4 = 0
-    lunch = ActiveWorkbook.Sheets("Diabetes_Control").Cells(5 + count4, 5)
-    While lunch <> Empty
-        lunch = ActiveWorkbook.Sheets("Diabetes_Control").Cells(5 + count4, 5)
-        lunch2 = ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(5 + count3, 1)
-        If lunch2 = lunch Then
-            ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(5 + count3, 1) = lunch2
-            lunchglycèmie = ActiveWorkbook.Sheets("Diabetes_Control").Cells(5 + count4, 7)
-            Time = ActiveWorkbook.Sheets("Diabetes_Control").Cells(5 + count4, 2)
-            ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(5 + count3, 6) = lunchglycèmie
-            count4 = count4 + 1
-        Else
-            count3 = count3 + 1
-            If ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(5 + count3, 1) = Empty Then
-                ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(5 + count3, 1) = lunch
-            End If
+    ' Store final day's readings (to ensure last date is captured)
+    If currDate <> 0 Then
+        wsOutput.Cells(RowOutput, 1).Value = Format(currDate, "MM/DD/YYYY") ' Date
+
+        If glucoseCountLunch > 0 Then
+            'wsOutput.Cells(RowOutput, 2).Value = "12:00 PM" ' Fixed time
+            wsOutput.Cells(RowOutput, 4).Value = Round(glucoseSumLunch / glucoseCountLunch, 1) ' Avg lunch reading
         End If
+
+        If glucoseCountAfternoon > 0 Then
+            'wsOutput.Cells(RowOutput, 4).Value = "2:00 PM" ' Fixed time
+            wsOutput.Cells(RowOutput, 6).Value = Round(glucoseSumAfternoon / glucoseCountAfternoon, 1) ' Avg afternoon reading
+        End If
+    End If
+
+    
+    'Evening Reading
+    
+    countRow = 5
+    RowOutput = 5 ' Start inserting at row 5
+    currDate = wsInput.Cells(countRow, 9).Value
+    
+    ' Reset counters for next date
+    glucoseSumMorning = 0 : glucoseCountMorning = 0
+    glucoseSumLunch = 0 : glucoseCountLunch = 0
+    glucoseSumDinner = 0 : glucoseCountDinner = 0
+    glucoseSumEvening = 0 : glucoseCountEvening = 0
+    
+    While wsInput.Cells(countRow, 9).Value <> ""
+        ' Get Date and Time values
+        If wsInput.Cells(countRow, 1).Value <> currDate Then
+            ' Store averaged results in output sheet
+            'wsOutput.Cells(RowOutput, 1).Value = Format(currDate, "MM/DD/YYYY")
+
+            If glucoseCountMorning > 0 Then
+                wsOutput.Cells(RowOutput, 2).Value = Round(glucoseSumMorning / glucoseCountMorning, 1) ' 2 AM
+                'wsOutput.Cells(RowOutput, 3).Value = "02:00 AM"
+            End If
+            
+            If glucoseCountLunch > 0 Then
+                wsOutput.Cells(RowOutput, 4).Value = Round(glucoseSumLunch / glucoseCountLunch, 1) ' Before lunch (9 AM - 1 PM)
+                'wsOutput.Cells(RowOutput, 5).Value = "12:00 PM"
+            End If
+            
+            If glucoseCountDinner > 0 Then
+                wsOutput.Cells(RowOutput, 6).Value = Round(glucoseSumDinner / glucoseCountDinner, 1) ' Before dinner (1 PM - 7 PM)
+                'wsOutput.Cells(RowOutput, 7).Value = "06:00 PM"
+            End If
+            
+            If glucoseCountEvening > 0 Then
+                wsOutput.Cells(RowOutput, 9).Value = Round(glucoseSumEvening / glucoseCountEvening, 1) ' Evening (9 PM - 11:59 PM)
+                'wsOutput.Cells(RowOutput, 9).Value = "10:00 PM"
+            End If
+            
+            ' Move to next row for output
+            RowOutput = RowOutput + 1
+            currDate = wsInput.Cells(countRow, 8).Value
+
+            ' Reset counters for next date
+            glucoseSumMorning = 0 : glucoseCountMorning = 0
+            glucoseSumLunch = 0 : glucoseCountLunch = 0
+            glucoseSumDinner = 0 : glucoseCountDinner = 0
+            glucoseSumEvening = 0 : glucoseCountEvening = 0
+        End If
+
+        TimeVar = wsInput.Cells(countRow, 10).Value
+
+        ' Categorize glucose readings by time range
+        If TimeVar >= TimeValue("12:00 AM") And TimeVar < TimeValue("9:00 AM") Then
+            glucoseSumMorning = glucoseSumMorning + wsInput.Cells(countRow, 3).Value
+            glucoseCountMorning = glucoseCountMorning + 1
+        ElseIf TimeVar >= TimeValue("9:00 AM") And TimeVar < TimeValue("1:00 PM") Then
+            glucoseSumLunch = glucoseSumLunch + wsInput.Cells(countRow, 7).Value
+            glucoseCountLunch = glucoseCountLunch + 1
+        ElseIf TimeVar >= TimeValue("1:00 PM") And TimeVar < TimeValue("7:00 PM") Then
+            glucoseSumDinner = glucoseSumDinner + wsInput.Cells(countRow, 7).Value
+            glucoseCountDinner = glucoseCountDinner + 1
+        ElseIf TimeVar >= TimeValue("9:00 PM") And TimeVar <= TimeValue("11:59 PM") Then
+            glucoseSumEvening = glucoseSumEvening + wsInput.Cells(countRow, 11).Value
+            glucoseCountEvening = glucoseCountEvening + 1
+        End If
+        
+        countRow = countRow + 1
     Wend
 
-    'Check before dodo
-    count3 = 0
-    count4 = 0
-    dodo = ActiveWorkbook.Sheets("Diabetes_Control").Cells(5 + count4, 9)
-    While dodo <> Empty
-        dodo = ActiveWorkbook.Sheets("Diabetes_Control").Cells(5 + count4, 9)
-        dodo2 = ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(5 + count3, 1)
-        If dodo = dodo2 Then
-            ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(5 + count3, 1) = dodo2
-            dinerglycèmie = ActiveWorkbook.Sheets("Diabetes_Control").Cells(5 + count4, 11)
-            Time = ActiveWorkbook.Sheets("Diabetes_Control").Cells(5 + count4, 10)
-            If Time > "21:00:00" Then
-                ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(5 + count3, 9) = dinerglycèmie
-            Else
-                ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(5 + count3, 6) = dinerglycèmie
-            End If
-            count4 = count4 + 1
-        Else
-            count3 = count3 + 1
-            If ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(5 + count3, 1) = Empty Then
-                ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(5 + count3, 1) = dodo
-            End If
-        End If
-    Wend
-
+    ' Store final day's readings
+    'wsOutput.Cells(RowOutput, 1).Value = Format(currDate, "MM/DD/YYYY")
+    If glucoseCountMorning > 0 Then wsOutput.Cells(RowOutput, 2).Value = Round(glucoseSumMorning / glucoseCountMorning, 1)
+    If glucoseCountLunch > 0 Then wsOutput.Cells(RowOutput, 4).Value = Round(glucoseSumLunch / glucoseCountLunch, 1)
+    If glucoseCountDinner > 0 Then wsOutput.Cells(RowOutput, 6).Value = Round(glucoseSumDinner / glucoseCountDinner, 1)
+    If glucoseCountEvening > 0 Then wsOutput.Cells(RowOutput, 9).Value = Round(glucoseSumEvening / glucoseCountEvening, 1)
+    
     Call GlucoseSort
 
     Call CalculateRoundedAverageWithCellsFixed
-           
+
     ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(2, 2) = "=ROUND(AVERAGE($B$5:$B$1000),1)"
-    ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(2, 4) = "=ROUND(AVERAGE($DB$5:$D$1000),1)"
+    ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(2, 4) = "=ROUND(AVERAGE($D$5:$D$1000),1)"
     ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(2, 6) = "=ROUND(AVERAGE($F$5:$F$1000),1)"
     ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(2, 9) = "=ROUND(AVERAGE($I$5:$I$1000),1)"
-    
+
     Call DeleteRowsWithZeroAverage
-    
+
     Call GlucoseColorIndex
 
+    Call sheet1.Glucose_Color
+
+    MsgBox "Glucose readings successfully categorized and exported!", vbInformation, "Success"
 End Sub
 
 Sub CalculateRoundedAverageWithCellsFixed()
