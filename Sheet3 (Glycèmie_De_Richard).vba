@@ -1,4 +1,3 @@
-'For Excel
 Sub doGlycemie()
     Dim wsInput As Worksheet
     Dim wsOutput As Worksheet
@@ -103,7 +102,9 @@ Sub doGlycemie()
     glucoseSumLunch = 0: glucoseCountLunch = 0
     glucoseSumAfternoon = 0: glucoseCountAfternoon = 0
     
-    If cuurdate = wsInput.Cells(5, 5).Value Then
+    currDate = wsInput.Cells(countRow, 1).Value
+    
+    If currDate = wsInput.Cells(5, 5).Value Then
     
 CheckGlucoseDates:
 
@@ -111,6 +112,10 @@ currDate = wsInput.Cells(countRow, 5).Value
 
     While wsInput.Cells(countRow, 5).Value <> ""
         TimeVar = wsInput.Cells(countRow, 6).Value
+        
+    If currDate = "04/22/2025" Then
+        c = 1
+    End If
 
         ' If moving to a new date, insert results and reset counters
         'If wsInput.Cells(countRow, 1).Value <> currDate And currDate <> 0 Then
@@ -126,12 +131,12 @@ currDate = wsInput.Cells(countRow, 5).Value
             glucoseCountAfternoon = glucoseCountAfternoon + 1
         End If
 
-            If glucoseCountLunch > 0 Then
+            If glucoseSumLunch > 0 Then
                 'wsOutput.Cells(RowOutput, 2).Value = "12:00 PM" ' Fixed time
                 wsOutput.Cells(RowOutput, 4).Value = Round(glucoseSumLunch / glucoseCountLunch, 1) ' Avg lunch reading
             End If
 
-            If glucoseCountAfternoon > 0 Then
+            If glucoseSumAfternoon > 0 Then
                 'wsOutput.Cells(RowOutput, 4).Value = "2:00 PM" ' Fixed time
                 wsOutput.Cells(RowOutput, 6).Value = Round(glucoseSumAfternoon / glucoseCountAfternoon, 1) ' Avg afternoon reading
                 RowOutput = RowOutput - 1
@@ -155,12 +160,16 @@ currDate = wsInput.Cells(countRow, 5).Value
 
         If glucoseCountLunch > 0 Then
             'wsOutput.Cells(RowOutput, 2).Value = "12:00 PM" ' Fixed time
-            wsOutput.Cells(RowOutput, 4).Value = Round(glucoseSumLunch / glucoseCountLunch, 1) ' Avg lunch reading
+            If glucoseCountLunch > 0 Then
+                wsOutput.Cells(RowOutput, 4).Value = Round(glucoseSumLunch / glucoseCountLunch, 1) ' Avg lunch reading
+            End If
         End If
 
         If glucoseCountAfternoon > 0 Then
             'wsOutput.Cells(RowOutput, 4).Value = "2:00 PM" ' Fixed time
-            wsOutput.Cells(RowOutput, 6).Value = Round(glucoseSumAfternoon / glucoseCountAfternoon, 1) ' Avg afternoon reading
+            If glucoseCountAfternoon > 0 Then
+                wsOutput.Cells(RowOutput, 6).Value = Round(glucoseSumAfternoon / glucoseCountAfternoon, 1) ' Avg afternoon reading
+            End If
         End If
     End If
     
