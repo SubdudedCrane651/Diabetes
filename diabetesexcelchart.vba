@@ -1,3 +1,4 @@
+'For excel
 Sub CreateDiabetesChart()
     Dim ws As Worksheet
     Set ws = ThisWorkbook.Sheets("Glycèmie_De_Richard_Perreault")

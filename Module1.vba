@@ -1,3 +1,4 @@
+'For Access
 Option Compare Database
 
 Public Sub AddDataToExcel(datestart As Integer)

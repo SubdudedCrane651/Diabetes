@@ -1,4 +1,4 @@
-'found in the Forms_Diabetes_Detal form
+'found in the Forms_Diabetes_Detal form in Access
 Private Sub Command41_Click()
     Dim started As Single : started = Timer
     Dim db As DAO.Database
@@ -57,10 +57,10 @@ Private Sub Command41_Click()
     'MsgBox ("Diabetes results ready to be viewed")
     
     'AddDatatToExcel using vba
-    'AddDataToExcel (days)
+    AddDataToExcel (days)
     
     'AddDatatToExcel using python
-    Call Shell("C:/Users/rchrd/AppData/Local/Programs/Python/Python312/python.exe C:\Users\rchrd\Documents\Richard\Diabetes\Diabetes_xlsm.py " + Str(days), vbNormalFocus)
+    'Call Shell("C:/Users/rchrd/AppData/Local/Programs/Python/Python312/python.exe C:\Users\rchrd\Documents\Richard\Diabetes\Diabetes_xlsm.py " + Str(days), vbNormalFocus)
     
     
     Cancel :

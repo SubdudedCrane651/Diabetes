@@ -1,3 +1,4 @@
+'For Excel
 Sub doGlycemie()
     Dim wsInput As Worksheet
     Dim wsOutput As Worksheet
