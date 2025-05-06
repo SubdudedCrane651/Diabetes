@@ -516,10 +516,14 @@ Err_Command25_Click:
 End Sub
 
 Private Sub Detail_Paint()
-If Me.Reading > 7# Then
-Me.Reading.ForeColor = vbRed
+If Me.Reading > 10# Then
+    Me.Reading.ForeColor = vbRed
 Else
-Me.Reading.ForeColor = vbBlack
+If Me.Reading <= 3.9 Then
+    Me.Reading.ForeColor = vbBlue
+Else
+    Me.Reading.ForeColor = vbBlack
+End If
 End If
 End Sub
 
