@@ -58,7 +58,7 @@ width = 0.35   # width of each bar
 depth = 0.5    # depth of each bar
 
 # Determine conditional colors for each bar
-colors = ['red' if val > 7 else 'blue' if val < 3 else 'green' for val in Average_Reading_sorted]
+colors = ['red' if val > 10 else 'blue' if val < 3 else 'green' for val in Average_Reading_sorted]
 
 # --------------------------
 # Create a 3D bar chart
