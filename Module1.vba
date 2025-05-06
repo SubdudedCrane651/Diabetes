@@ -324,8 +324,8 @@ HandleError:
     
     Sub InsertGlucoseIntoDiabetes()
         Dim db As DAO.Database
-        Dim rstSource As DAO.Recordset
-        Dim rstTarget As DAO.Recordset
+        Dim rst As DAO.Recordset
+        Dim rst1 As DAO.Recordset
         Dim glucoseDate As Date
         Dim glucoseTime As String
         Dim glucoseReading As Double
@@ -334,32 +334,32 @@ HandleError:
         Set db = CurrentDb()
 
         ' Open the source table (GlucoseReadings)
-        Set rstSource = db.OpenRecordset("GlucoseReadings", dbOpenDynaset)
+        Set rst = db.OpenRecordset("GlucoseReadings", dbOpenDynaset)
 
         ' Open the target table (Diabetes)
-        Set rstTarget = db.OpenRecordset("Diabetes", dbOpenDynaset)
+        Set rst1 = db.OpenRecordset("Diabetes", dbOpenDynaset)
 
         ' Loop through GlucoseReadings table and insert into Diabetes table
-        Do While Not rstSource.EOF
+        Do While Not rst.EOF
             ' Extract Date and Time separately
             glucoseDate = rst!Date
             glucoseTime = Format(rst!Date, "HH:MM:SS AM/PM") ' Extract time
-            glucoseReading = rs!GlucoseLevel
+            glucoseReading = rst!GlucoseLevel
 
             ' Insert data into Diabetes table
-            rstTarget.AddNew
-            rstTarget !Datevar = glucoseDate
-            rstTarget !Timevar = glucoseTime
-            rstTarget !Reading = Format(glucoseReading, "0.0") ' One decimal place
-            rstTarget.Update
+            rst1.AddNew
+            rst1!Datevar = glucoseDate
+            rst1!Timevar = glucoseTime
+            rst1!Reading = Format(glucoseReading, "0.0") ' One decimal place
+            rst1.Update
 
             ' Move to the next record
-            rstSource.MoveNext
+            rst.MoveNext
         Loop
 
         ' Close connections
-        rstSource.Close
-        rstTarget.Close
+        rst.Close
+        rst1.Close
         db.Close
 
         MsgBox "Glucose readings successfully inserted into Diabetes table!", vbInformation, "Success"
