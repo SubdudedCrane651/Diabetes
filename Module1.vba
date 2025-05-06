@@ -21,10 +21,10 @@ Public Sub AddDataToExcel(datestart As Integer)
     Set oExcel = GetObject(, "Excel.Application")
     If Err <> 0 Then
         Err.Clear
-         On Error Goto Error_Handler
+         On Error GoTo Error_Handler
         Set oExcel = CreateObject("Excel.Application")
     Else
-         On Error Goto Error_Handler
+         On Error GoTo Error_Handler
     End If
     
     Dim XL As Object, wb As Object
@@ -33,10 +33,10 @@ Public Sub AddDataToExcel(datestart As Integer)
         .Visible = False
         .DisplayAlerts = False
         .ScreenUpdating = False
-        .Workbooks.Open("C:\Users\rchrd\Documents\Richard\Diabetes.xlsm")
+        .Workbooks.Open ("C:\Users\rchrd\Documents\Richard\Diabetes.xlsm")
         .Run "DeleteSelection" 'Code stops here!
         .ActiveWorkbook.Save
-        .ActiveWorkbook.Close(True)
+        .ActiveWorkbook.Close (True)
         '.ActiveWorkbook.Quite
     End With
     Set XL = Nothing
@@ -48,7 +48,7 @@ Public Sub AddDataToExcel(datestart As Integer)
     Set oExcelWrSht = oExcelWrkBk.Sheets(1)
     
     
-    oExcelWrkBk.RunAutoMacros(xlAutoActivate)
+    oExcelWrkBk.RunAutoMacros (xlAutoActivate)
     
     x = 5
     
@@ -59,7 +59,7 @@ Public Sub AddDataToExcel(datestart As Integer)
     Set qd = dbs.QueryDefs("Mourning_Gluclose_Reading")
     Set rst = qd.OpenRecordset
     
-    Debug.Print(qd.SQL)
+    Debug.Print (qd.SQL)
     
     ' Loop through records to calculate daily averages
     Do Until rst.EOF
@@ -102,7 +102,7 @@ Public Sub AddDataToExcel(datestart As Integer)
     Set qd = dbs.QueryDefs("Afternoon_Glucose_Reading")
     Set rst = qd.OpenRecordset
     
-    Debug.Print(qd.SQL)
+    Debug.Print (qd.SQL)
     
     PrevDate = Empty
     Doit = True
@@ -174,7 +174,7 @@ Public Sub AddDataToExcel(datestart As Integer)
     Set qd = dbs.QueryDefs("Evening_Gluclose_Reading")
     Set rst = qd.OpenRecordset
     
-    Debug.Print(qd.SQL)
+    Debug.Print (qd.SQL)
     
     PrevDate = Empty
     
@@ -219,16 +219,16 @@ Public Sub AddDataToExcel(datestart As Integer)
     oExcel.ScreenUpdating = True
     oExcel.Visible = True
     
-    Exit_Point :
+Exit_Point:
     Set oExcelWrSht = Nothing
     Set oExcelWrkBk = Nothing
     Set oExcel = Nothing
     Set rst = Nothing
     Exit Sub
     
-    Error_Handler :
+Error_Handler:
     MsgBox Err & " - " & Err.Description
-    Goto Exit_Point
+    GoTo Exit_Point
 End Sub
 
 Function ConvertFrenchDate(originalDate As String) As String
@@ -294,7 +294,7 @@ Sub ImportCSVToAccess()
         
         ' Loop through CSV and insert records
         Do Until EOF(fileNum)
-             On Error Goto HandleError ' Enable error handling
+             On Error GoTo HandleError ' Enable error handling
 
             Line Input #fileNum, csvLine
             dataArray = Split(csvLine, ",") ' Split CSV into array
@@ -311,7 +311,7 @@ Sub ImportCSVToAccess()
             rst.Update
         Loop
 
-        HandleError :
+HandleError:
         ' Close connections (if no error)
         Close #fileNum
         rst.Close
@@ -342,9 +342,9 @@ Sub ImportCSVToAccess()
         ' Loop through GlucoseReadings table and insert into Diabetes table
         Do While Not rstSource.EOF
             ' Extract Date and Time separately
-            glucoseDate = rstSource !Date
-            glucoseTime = Format(rstSource !Date, "HH:MM:SS AM/PM") ' Extract time
-            glucoseReading = rstSource !GlucoseLevel
+            glucoseDate = rst!Date
+            glucoseTime = Format(rst!Date, "HH:MM:SS AM/PM") ' Extract time
+            glucoseReading = rs!GlucoseLevel
 
             ' Insert data into Diabetes table
             rstTarget.AddNew
