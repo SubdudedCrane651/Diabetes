@@ -142,7 +142,9 @@ currDate = wsInput.Cells(countRow, 5).Value
                 RowOutput = RowOutput - 1
             End If
 
-            RowOutput = RowOutput + 1 ' Move to next row
+            If glucoseSumLunch <> 0 Or glucoseSumAfternoon <> 0 Then
+                RowOutput = RowOutput + 1 ' Move to next row
+            End If
 
             ' Reset values for the next date
             glucoseSumLunch = 0: glucoseCountLunch = 0
@@ -262,6 +264,7 @@ currDate = wsInput.Cells(countRow, 5).Value
     ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(2, 4) = "=ROUND(AVERAGE($D$5:$D$1000),1)"
     ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(2, 6) = "=ROUND(AVERAGE($F$5:$F$1000),1)"
     ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(2, 9) = "=ROUND(AVERAGE($I$5:$I$1000),1)"
+    ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(2, 11) = "=ROUND(AVERAGE($K$5:$K$1000),1)"
 
     Call DeleteRowsWithZeroAverage
 
@@ -309,7 +312,7 @@ Sub DeleteRowsWithZeroAverage()
     Dim i As Long
 
     Set Sheet2 = ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault")
-    lastRow = Sheet2.Cells(Sheet2.Rows.count, 11).End(xlUp).Row
+    lastRow = Sheet2.Cells(Sheet2.Rows.Count, 11).End(xlUp).Row
 
     ' Loop through each row from bottom to top
     For i = lastRow To 5 Step -1
@@ -320,12 +323,16 @@ Sub DeleteRowsWithZeroAverage()
 End Sub
 
 Sub GlucoseDelete()
-    Range("A5:K1000").Select
-    Selection.ClearContents
-    Start = ActiveWorkbook.Sheets("Diabetes_Control").Cells(5, 1)
-    For Days = 0 To ActiveWorkbook.Sheets("Diabetes_Control").Cells(2, 14)
-        ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(5 + Days, 1) = Start - Days
-    Next
+    Dim Start As Date
+    Dim Days As Integer
+
+    Range("A5:K1000").ClearContents  ' Simplified to avoid .Select
+
+    Start = ActiveWorkbook.Sheets("Diabetes_Control").Cells(5, 1).Value  ' Ensure Start is a Date
+
+    For Days = 0 To ActiveWorkbook.Sheets("Diabetes_Control").Cells(2, 14).Value
+        ActiveWorkbook.Sheets("Glycèmie_De_Richard_Perreault").Cells(5 + Days, 1).Value = Start - Days  ' Date arithmetic
+    Next Days
 End Sub
 
 Sub GlucoseSort()
