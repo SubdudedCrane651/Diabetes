@@ -67,11 +67,13 @@ def write_afternoon_avg_to_excel(sheet, start_column, rows, header):
 
         time_obj = time_str.time()
 
-        if datetime.strptime("13:00:00", "%H:%M:%S").time() <= time_obj < datetime.strptime("21:00:00", "%H:%M:%S").time():
-            daily_avg[date_str]["2:00 PM"].append(reading)
+        #if datetime.strptime("13:00:00", "%H:%M:%S").time() <= time_obj < datetime.strptime("21:00:00", "%H:%M:%S").time():
+        #    daily_avg[date_str]["2:00 PM"].append(reading)
             
-        elif datetime.strptime("11:00:00", "%H:%M:%S").time() <= time_obj < datetime.strptime("13:00:00", "%H:%M:%S").time():
+        if datetime.strptime("11:00:00", "%H:%M:%S").time() <= time_obj < datetime.strptime("13:00:00", "%H:%M:%S").time():
             daily_avg[date_str]["12:00 PM"].append(reading)
+        else:
+            daily_avg[date_str]["2:00 PM"].append(reading)
 
     x = 5
     for date, readings in daily_avg.items():
