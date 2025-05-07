@@ -1,3 +1,13 @@
+Sub Macro1()
+'
+' Macro1 Macro
+'
+
+'
+    Columns("A:A").Select
+    Selection.NumberFormat = "[$-fr-CA]d mmmm, yyyy;@"
+End Sub
+
 Sub GlucoseColorIndex()
 
     'High value
@@ -116,4 +126,28 @@ Sub GlucoseColorIndex()
         End If
     Next cell
 
+End Sub
+
+Sub RemoveImageAndRunPython()
+    Dim ws As Worksheet
+    Dim shp As Shape
+    Dim pythonScript As String
+
+    ' Set worksheet
+    Set ws = ThisWorkbook.Sheets("Glycèmie_De_Richard_Perreault") ' Change sheet name if needed
+
+    ' Loop through all shapes to find and delete the image
+    For Each shp In ws.Shapes
+        If shp.TopLeftCell.Address = "$K$27" Then
+            shp.Delete
+        End If
+    Next shp
+
+    ' Set the Python script path
+    pythonScript = """C:\Users\rchrd\Documents\Richard\Diabetes\Glucose_Chart.py""" ' Update with your actual Python script
+
+    ' Run the Python script
+    Shell "python " & pythonScript, vbNormalFocus
+
+    MsgBox "Image deleted & Python script executed!", vbInformation, "Success"
 End Sub

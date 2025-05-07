@@ -117,14 +117,17 @@ def CreateDiabetes_xlsm(days):
 
     morning_query = "{CALL Mourning_Gluclose_Reading}"
     rows = fetch_data_from_access(morning_query, connection_string)
+    print(rows)
     write_morning_avg_to_excel(sheet, "A", rows, "Richard's Morning Glucose Reading")
 
     afternoon_query = "{CALL Afternoon_Glucose_Reading}"
     rows = fetch_data_from_access(afternoon_query, connection_string)
+    print(rows)
     write_afternoon_avg_to_excel(sheet, "E", rows, "Richard's Afternoon Glucose Reading")
 
     evening_query = "{CALL Evening_Gluclose_Reading}"
     rows = fetch_data_from_access(evening_query, connection_string)
+    print(rows)
     write_evening_avg_to_excel(sheet, "I", rows, "Richard's Evening Glucose Reading")
 
     workbook.save(filename="C:\\Users\\rchrd\\Documents\\Richard\\Diabetes.xlsm")
