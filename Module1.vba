@@ -136,10 +136,12 @@ Public Sub AddDataToExcel(datestart As Integer)
             lunchcount = 0
         End If
         
-        If TimeValue(currTime) >= TimeValue("11:00:00 AM") And TimeValue(currTime) < TimeValue("1:00:00 PM") Then
+        If TimeValue(currTime) >= TimeValue("9:00:00 AM") And TimeValue(currTime) < TimeValue("12:00:00 PM") Then
             lunchreading = lunchreading + rst!Reading
             lunchcount = lunchcount + 1
-        Else
+        End If
+        
+        If TimeValue(currTime) >= TimeValue("12:00:00 AM") And TimeValue(currTime) < TimeValue("06:00:00 PM") Then
             ' Add current reading to sum
             sumReading = sumReading + rst!Reading
             countReading = countReading + 1
