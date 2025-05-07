@@ -277,7 +277,7 @@ Sub ImportCSVToAccess()
 
     ' **Clear the table before inserting new data**
     db.Execute "DELETE FROM GlucoseReadings;", dbFailOnError
-    MsgBox "Table cleared successfully!", vbInformation, "Reset Complete"
+    'MsgBox "Table cleared successfully!", vbInformation, "Reset Complete"
     
     ' Open a recordset to insert data
     Set rst = db.OpenRecordset("GlucoseReadings", dbOpenDynaset)
@@ -317,7 +317,7 @@ HandleError:
         rst.Close
         db.Close
 
-        MsgBox "Data successfully imported!", vbInformation, "Import Complete"
+        'MsgBox "Data successfully imported!", vbInformation, "Import Complete"
         Call DeleteDiabetesFromFirstDate
         Call InsertGlucoseIntoDiabetes
     End Sub
@@ -402,7 +402,7 @@ HandleError:
             ' **Delete all records from first CSV date onward**
             db.Execute "DELETE FROM Diabetes WHERE Datevar >= #" & firstDate & "#;", dbFailOnError
 
-            MsgBox "Deleted records from " & firstDate & " onwards in Diabetes table!", vbInformation, "Records Removed"
+            'MsgBox "Deleted records from " & firstDate & " onwards in Diabetes table!", vbInformation, "Records Removed"
 
             db.Close
         End Sub
