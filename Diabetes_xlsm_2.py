@@ -136,5 +136,5 @@ try:
     days = sys.argv[1]
     CreateDiabetes_xlsm(days)
 except IndexError:
-    days = 14
+    days = 15
     CreateDiabetes_xlsm(days)
