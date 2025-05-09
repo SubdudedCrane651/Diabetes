@@ -70,9 +70,10 @@ def write_afternoon_avg_to_excel(sheet, start_column, rows, header):
         #if datetime.strptime("13:00:00", "%H:%M:%S").time() <= time_obj < datetime.strptime("21:00:00", "%H:%M:%S").time():
         #    daily_avg[date_str]["2:00 PM"].append(reading)
             
-        if datetime.strptime("11:00:00", "%H:%M:%S").time() <= time_obj < datetime.strptime("13:00:00", "%H:%M:%S").time():
+        if datetime.strptime("9:00:00", "%H:%M:%S").time() <= time_obj < datetime.strptime("12:00:00", "%H:%M:%S").time():
             daily_avg[date_str]["12:00 PM"].append(reading)
-        else:
+       
+        if datetime.strptime("12:00:00", "%H:%M:%S").time() <= time_obj < datetime.strptime("18:00:00", "%H:%M:%S").time():    
             daily_avg[date_str]["2:00 PM"].append(reading)
 
     x = 5
@@ -139,5 +140,5 @@ try:
     days = sys.argv[1]
     CreateDiabetes_xlsm(days)
 except IndexError:
-    days = 15
+    days = 14
     CreateDiabetes_xlsm(days)
